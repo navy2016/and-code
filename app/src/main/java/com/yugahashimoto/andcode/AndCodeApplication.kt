@@ -56,6 +56,7 @@ import com.yugahashimoto.andcode.runtime.local.LocalRuntimeProcessLauncher
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeReleaseClient
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeServiceController
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeTarget
+import com.yugahashimoto.andcode.runtime.local.Ipv4FirstDns
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeUpdater
 import com.yugahashimoto.andcode.runtime.local.PiController
 import com.yugahashimoto.andcode.runtime.local.VerifiedRuntimeDownloader
@@ -179,7 +180,7 @@ class AndCodeApplication : Application() {
         DeviceStorage.install { deviceStorageAccess.mounts() }
         notifications = RuntimeNotificationHelper(this)
         providerCredentials = LocalProviderCredentialStore(settings)
-        val httpClient = OkHttpClient()
+        val httpClient = OkHttpClient.Builder().dns(Ipv4FirstDns()).build()
         // Application-scoped so that navigating away from voice settings does not abandon a model
         // download half-written.
         voskModels = VoskModelStore(this, applicationScope, httpClient)
