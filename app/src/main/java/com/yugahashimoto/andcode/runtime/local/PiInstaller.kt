@@ -12,8 +12,77 @@ class PiInstaller(
 ) {
     suspend fun installInto(
         rootfs: File,
-        onProgress: (Float) -> Unit = {},
+        onProgress: (Float, String) -> Unit = { _, _ -> },
     ): File =
+        withContext(Dispatchers.IO) {
+            require(runtimeDirectory.usableSpace >= PiManifest.MIN_FREE_BYTES) {
+                "Pi needs at least 180 MB free space (available ${runtimeDirectory.usableSpace} bytes)"
+            }
+
+            val asset = PiManifest.assetFor(abi)
+            val cache = File(runtimeDirectory, "cache").apply { mkdirs() }
+            val archive = File(cache, asset.name)
+
+            // Download with progress
+            downloader.download(
+                asset.url,
+                archive,
+                asset.sha256,
+                asset.sizeBytes,
+            ) { progress ->
+                if (progress != null) {
+                    onProgress(progress * 0.35f, "Downloading pi package")
+                }
+            }
+
+            // Verify checksum
+            onProgress(0.35f, "Verifying checksum")
+            PiManifest.verifyArchive(archive, abi)
+
+            // Extract
+            onProgress(0.35f, "Extracting archive")
+            val extraction = File(runtimeDirectory, "pi-extract-${System.nanoTime()}").apply { mkdirs() }
+            archive.inputStream().use { RuntimeArchive.extractTarGz(it, extraction) }
+
+            // Find the pi binary in the extracted archive
+            val sourceDir =
+                extraction.walkTopDown()
+                    .firstOrNull { it.isDirectory && File(it, PiManifest.BINARY_NAME).isFile }
+                    ?: error("Official Pi archive did not contain a pi binary")
+
+            val destinationDir = File(rootfs, INSTALL_DIR)
+            destinationDir.parentFile?.mkdirs()
+            val candidate = File(destinationDir.parentFile, "pi.new-${System.nanoTime()}")
+            val backup = File(destinationDir.parentFile, "pi.rollback")
+
+            // Install binary
+            onProgress(0.35f, "Installing pi binary")
+            runCatching {
+                candidate.deleteRecursively()
+                sourceDir.copyRecursively(candidate, overwrite = true)
+                val candidateBinary = File(candidate, PiManifest.BINARY_NAME)
+                require(candidateBinary.setExecutable(true, false) || candidateBinary.canExecute()) {
+                    "Unable to mark pi executable"
+                }
+                backup.deleteRecursively()
+                if (destinationDir.exists()) {
+                    require(destinationDir.renameTo(backup)) { "Unable to stage the previous Pi install" }
+                }
+                require(candidate.renameTo(destinationDir)) { "Unable to activate the verified Pi install" }
+                installLauncher(rootfs)
+                backup.deleteRecursively()
+            }.onFailure { error ->
+                candidate.deleteRecursively()
+                if (!destinationDir.exists() && backup.exists()) backup.renameTo(destinationDir)
+                if (!destinationBin.exists() && destinationDir.exists()) installLauncher(rootfs)
+                throw error
+            }
+
+            writeInstalledVersion(rootfs, PiManifest.VERSION)
+            onProgress(1f, "Pi installation complete")
+            destinationBin
+        }
+
         withContext(Dispatchers.IO) {
             require(runtimeDirectory.usableSpace >= PiManifest.MIN_FREE_BYTES) {
                 "Pi needs at least 180 MB free space (available ${runtimeDirectory.usableSpace} bytes)"
