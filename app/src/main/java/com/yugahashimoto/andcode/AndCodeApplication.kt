@@ -45,6 +45,7 @@ import com.yugahashimoto.andcode.runtime.local.ClaudeCodeTarget
 import com.yugahashimoto.andcode.runtime.local.DefaultLocalRuntimeUpdateEngine
 import com.yugahashimoto.andcode.runtime.local.GitCloneRepository
 import com.yugahashimoto.andcode.runtime.local.GitCredentialHelper
+import com.yugahashimoto.andcode.runtime.local.Ipv4FirstDns
 import com.yugahashimoto.andcode.runtime.local.LocalProviderCredentialStore
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeAccessCoordinator
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeCommandRunner
@@ -55,7 +56,6 @@ import com.yugahashimoto.andcode.runtime.local.LocalRuntimeMessages
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeProcessLauncher
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeReleaseClient
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeServiceController
-import com.yugahashimoto.andcode.runtime.local.Ipv4FirstDns
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeTarget
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeUpdater
 import com.yugahashimoto.andcode.runtime.local.PiController

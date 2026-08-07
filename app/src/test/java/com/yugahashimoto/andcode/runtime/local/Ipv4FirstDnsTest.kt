@@ -1,8 +1,8 @@
 package com.yugahashimoto.andcode.runtime.local
 
-import java.net.InetAddress
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.net.InetAddress
 
 class Ipv4FirstDnsTest {
     @Test
