@@ -23,6 +23,7 @@ import com.yugahashimoto.andcode.feature.settings.ClaudeCodeAgentSettingsScreen
 import com.yugahashimoto.andcode.feature.settings.GitHubSettingsScreen
 import com.yugahashimoto.andcode.feature.settings.ModelVisibilityScreen
 import com.yugahashimoto.andcode.feature.settings.OpenCodeAgentSettingsScreen
+import com.yugahashimoto.andcode.feature.settings.PiAgentSettingsScreen
 import com.yugahashimoto.andcode.feature.settings.OpenCodeAgentSettingsViewModel
 import com.yugahashimoto.andcode.feature.settings.ProviderSettingsScreen
 import com.yugahashimoto.andcode.feature.settings.SettingsScreenV2
@@ -56,6 +57,8 @@ fun NavGraphBuilder.settingsNavGraph(
     claudeActions: ClaudeSettingsActions,
     antigravity: () -> com.yugahashimoto.andcode.runtime.local.AntigravityControllerState,
     antigravityActions: AntigravitySettingsActions,
+    pi: () -> com.yugahashimoto.andcode.runtime.local.PiControllerState,
+    piActions: PiSettingsActions,
     onRequestWakeWordPermission: () -> Unit,
 ) {
     composable(ROUTE_SETTINGS) {
@@ -263,6 +266,7 @@ fun NavGraphBuilder.settingsNavGraph(
             onOpenOpenCode = { navController.navigate(ROUTE_SETTINGS_AGENT_OPENCODE) },
             onOpenClaudeCode = { navController.navigate(ROUTE_SETTINGS_AGENT_CLAUDE) },
             onOpenAntigravity = { navController.navigate(ROUTE_SETTINGS_AGENT_ANTIGRAVITY) },
+            onOpenPi = { navController.navigate(ROUTE_SETTINGS_AGENT_PI) },
             onBack = { navController.popBackStack() },
         )
     }
@@ -335,6 +339,15 @@ fun NavGraphBuilder.settingsNavGraph(
             onOpenUrl = { url ->
                 runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }
             },
+            onBack = { navController.popBackStack() },
+        )
+    }
+
+    composable(ROUTE_SETTINGS_AGENT_PI) {
+        PiAgentSettingsScreen(
+            pi = pi(),
+            onInstall = piActions.onInstall,
+            onRefresh = piActions.onRefresh,
             onBack = { navController.popBackStack() },
         )
     }
@@ -464,7 +477,12 @@ data class ClaudeSettingsActions(
     val onSignOut: () -> Unit,
 )
 
-/** Antigravity actions the settings graph forwards to its agent screen. */
+/** Pi actions the settings graph forwards to its agent screen. */
+data class PiSettingsActions(
+    val onInstall: () -> Unit,
+    val onRefresh: () -> Unit,
+)
+
 data class AntigravitySettingsActions(
     val onInstall: () -> Unit,
     val onUpdate: () -> Unit,

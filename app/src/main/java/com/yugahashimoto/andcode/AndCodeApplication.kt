@@ -139,6 +139,9 @@ class AndCodeApplication : Application() {
     lateinit var antigravityController: AntigravityController
         private set
 
+    lateinit var piController: PiController
+        private set
+
     lateinit var runtimeMessages: LocalRuntimeMessages
         private set
 
@@ -234,6 +237,7 @@ class AndCodeApplication : Application() {
         antigravityRuntime = AntigravityRuntime(runtimeDirectory, installer::installedRuntime, githubToken = { settings.githubToken })
         antigravityTarget = AntigravityTarget(antigravityRuntime)
         antigravityController = AntigravityController(installer, antigravityTarget, applicationScope)
+        piController = PiController(installer, applicationScope)
         runtimeMessages = AndroidLocalRuntimeMessages(this)
         gitCloneRepository =
             GitCloneRepository(
