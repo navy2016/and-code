@@ -8,6 +8,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.io.IOException
+import kotlinx.coroutines.delay
 
 class VerifiedRuntimeDownloader(
     private val httpClient: OkHttpClient = OkHttpClient(),
@@ -34,7 +36,7 @@ class VerifiedRuntimeDownloader(
         }
     }
 
-    private fun downloadLocked(
+    private suspend fun downloadLocked(
         url: String,
         destination: File,
         expectedSha256: String,
@@ -61,24 +63,37 @@ class VerifiedRuntimeDownloader(
             headers.forEach { (name, value) -> requestBuilder.header(name, value) }
             val request = requestBuilder.build()
             var downloaded = 0L
-            httpClient.newCall(request).execute().use { response ->
-                require(response.isSuccessful) {
-                    "Runtime download failed with HTTP ${response.code}"
-                }
-                val body = requireNotNull(response.body) { "Runtime download response had no body" }
-                partial.outputStream().buffered().use { output ->
-                    body.byteStream().use { input ->
-                        val buffer = ByteArray(64 * 1024)
-                        while (true) {
-                            val count = input.read(buffer)
-                            if (count < 0) break
-                            output.write(buffer, 0, count)
-                            downloaded += count
-                            onProgress(expectedSizeBytes?.let { downloaded.toFloat() / it })
+            var lastNetworkError: IOException? = null
+            for (attempt in 0 until MAX_NETWORK_ATTEMPTS) {
+                try {
+                    httpClient.newCall(request).execute().use { response ->
+                        require(response.isSuccessful) {
+                            "Runtime download failed with HTTP ${response.code}"
+                        }
+                        val body = requireNotNull(response.body) { "Runtime download response had no body" }
+                        partial.outputStream().buffered().use { output ->
+                            body.byteStream().use { input ->
+                                val buffer = ByteArray(64 * 1024)
+                                while (true) {
+                                    val count = input.read(buffer)
+                                    if (count < 0) break
+                                    output.write(buffer, 0, count)
+                                    downloaded += count
+                                    onProgress(expectedSizeBytes?.let { downloaded.toFloat() / it })
+                                }
+                            }
                         }
                     }
+                    lastNetworkError = null
+                    break
+                } catch (error: IOException) {
+                    lastNetworkError = error
+                    partial.delete()
+                    downloaded = 0L
+                    if (attempt + 1 < MAX_NETWORK_ATTEMPTS) delay(RETRY_DELAYS_MS[attempt])
                 }
             }
+            lastNetworkError?.let { throw it }
             expectedSizeBytes?.let { expected ->
                 require(downloaded == expected) {
                     "Runtime download size mismatch: expected $expected, got $downloaded"
@@ -148,5 +163,7 @@ class VerifiedRuntimeDownloader(
     companion object {
         private val SHA256 = Regex("^[a-f0-9]{64}$")
         private val LOOPBACK_HOSTS = setOf("127.0.0.1", "localhost", "::1")
+        private const val MAX_NETWORK_ATTEMPTS = 3
+        private val RETRY_DELAYS_MS = longArrayOf(1_000L, 3_000L)
     }
 }

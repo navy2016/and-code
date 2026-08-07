@@ -425,6 +425,13 @@ class LocalRuntimeInstaller(
             writeText("nameserver 1.1.1.1\nnameserver 8.8.8.8\n")
         }
         File(rootfs, "etc/hosts").writeText("127.0.0.1 localhost\n::1 localhost\n")
+        File(rootfs, "etc/apk/repositories").apply {
+            parentFile?.mkdirs()
+            writeText(
+                "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.24/main\n" +
+                    "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.24/community\n",
+            )
+        }
         File(rootfs, "etc/profile.d/android-code.sh").apply {
             parentFile?.mkdirs()
             writeText(

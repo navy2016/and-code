@@ -35,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import java.io.File
@@ -62,7 +63,12 @@ val appModule =
 
         single { VoskModelStore(androidContext(), get(), get()) }
 
-        single { OkHttpClient.Builder().dns(Ipv4FirstDns()).build() }
+        single { OkHttpClient.Builder()
+            .dns(Ipv4FirstDns())
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(5, TimeUnit.MINUTES)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build() }
 
         single { LocalRuntimeAccessCoordinator() }
 
