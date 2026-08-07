@@ -4,12 +4,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.IOException
-import kotlinx.coroutines.delay
 
 class VerifiedRuntimeDownloader(
     private val httpClient: OkHttpClient = OkHttpClient(),

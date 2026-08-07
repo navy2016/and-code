@@ -68,10 +68,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class AndCodeApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -181,12 +181,13 @@ class AndCodeApplication : Application() {
         DeviceStorage.install { deviceStorageAccess.mounts() }
         notifications = RuntimeNotificationHelper(this)
         providerCredentials = LocalProviderCredentialStore(settings)
-        val httpClient = OkHttpClient.Builder()
-            .dns(Ipv4FirstDns())
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.MINUTES)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .build()
+        val httpClient =
+            OkHttpClient.Builder()
+                .dns(Ipv4FirstDns())
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build()
         // Application-scoped so that navigating away from voice settings does not abandon a model
         // download half-written.
         voskModels = VoskModelStore(this, applicationScope, httpClient)
