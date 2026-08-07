@@ -97,14 +97,13 @@ jobs:
               --title "$TAG" \
               --generate-notes
           fi
-           cp app/build/outputs/apk/debug/app-release.apk "and-code-$TAG-release.apk"
-           ASSETS=("and-code-$TAG-release.apk")
-           if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-             cp app/build/outputs/apk/release/app-release.apk "and-code-$TAG-release.apk"
-             
-             gh release delete-asset "$TAG" "and-code-$TAG-release-unsigned.apk" -y || true
-           else
-             cp app/build/outputs/apk/release/app-release-unsigned.apk "and-code-$TAG-release-unsigned.apk"
-             ASSETS+=("and-code-$TAG-release-unsigned.apk")
+          ASSETS=()
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk "and-code-$TAG-release.apk"
+            ASSETS+=("and-code-$TAG-release.apk")
+            gh release delete-asset "$TAG" "and-code-$TAG-release-unsigned.apk" -y || true
+          else
+            cp app/build/outputs/apk/release/app-release-unsigned.apk "and-code-$TAG-release-unsigned.apk"
+            ASSETS+=("and-code-$TAG-release-unsigned.apk")
           fi
           gh release upload "$TAG" --clobber "${ASSETS[@]}"
