@@ -12,8 +12,11 @@ import kotlinx.coroutines.withContext
 
 sealed interface PiInstallStatus {
     data object Idle : PiInstallStatus
+
     data class Installing(val progress: Float?, val step: Int) : PiInstallStatus
+
     data class Ready(val version: String) : PiInstallStatus
+
     data class Failed(val message: String) : PiInstallStatus
 }
 

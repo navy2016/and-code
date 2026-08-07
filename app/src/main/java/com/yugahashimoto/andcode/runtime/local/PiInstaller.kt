@@ -75,7 +75,10 @@ class PiInstaller(
         fun installedVersion(rootfs: File): String? =
             runCatching { File(rootfs, VERSION_MARKER).readText().trim().takeIf(String::isNotEmpty) }.getOrNull()
 
-        internal fun writeInstalledVersion(rootfs: File, version: String) {
+        internal fun writeInstalledVersion(
+            rootfs: File,
+            version: String,
+        ) {
             runCatching {
                 File(rootfs, VERSION_MARKER).apply {
                     parentFile?.mkdirs()
