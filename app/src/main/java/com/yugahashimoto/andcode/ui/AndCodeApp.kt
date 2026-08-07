@@ -182,6 +182,7 @@ fun AndCodeApp(
     val runtimeTargets by app.runtimeRegistry.targets.collectAsState()
     val preferences by app.preferences.state.collectAsState()
     val antigravityState by app.antigravityController.state.collectAsState()
+    val piState by app.piController.state.collectAsState()
 
     var collapsedSections by remember { mutableStateOf(setOf<String>()) }
 
@@ -824,6 +825,7 @@ fun AndCodeApp(
                         runtimeStatus = localRuntimeStatus,
                         claude = workspaceState.claude,
                         antigravity = antigravityState,
+                        pi = piState,
                         onStartSetup = { agents ->
                             // Ticking Claude Code or Antigravity next to OpenCode used to install
                             // neither of them: the two branches below were guarded on OpenCode
@@ -836,6 +838,8 @@ fun AndCodeApp(
                                 workspaceViewModel.setupLocalRuntime(agents)
                             } else if (com.yugahashimoto.andcode.runtime.LocalAgent.ANTIGRAVITY in agents) {
                                 app.antigravityController.install(agents)
+                            } else if (com.yugahashimoto.andcode.runtime.LocalAgent.PI in agents) {
+                                app.piController.install(agents)
                             } else if (com.yugahashimoto.andcode.runtime.LocalAgent.CLAUDE_CODE in agents) {
                                 workspaceViewModel.installClaudeCode()
                             }
@@ -870,6 +874,7 @@ fun AndCodeApp(
                         onRefreshCatalog = app.catalogRepository::refreshProvidersOnly,
                         onRefreshClaudeState = workspaceViewModel::refreshClaudeCode,
                         onRefreshAntigravityState = app.antigravityController::refresh,
+                        onRefreshPiState = app.piController::refresh,
                         onConnectGitHub = { settingsViewModel.beginGitHubDeviceFlow() },
                         onOpenGitHubVerification = { url ->
                             context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
@@ -1062,6 +1067,12 @@ fun AndCodeApp(
                             onSubmitCode = app.antigravityController::submitAuthCode,
                             onCancelSignIn = app.antigravityController::cancelAuth,
                             onSignOut = app.antigravityController::logout,
+                        ),
+                    pi = { piState },
+                    piActions =
+                        com.yugahashimoto.andcode.ui.navigation.PiSettingsActions(
+                            onInstall = { app.piController.install() },
+                            onRefresh = app.piController::refresh,
                         ),
                     onRequestWakeWordPermission = {
                         startWakeWordAfterPermission = true

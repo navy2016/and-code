@@ -45,6 +45,7 @@ import com.yugahashimoto.andcode.runtime.local.ClaudeCodeTarget
 import com.yugahashimoto.andcode.runtime.local.DefaultLocalRuntimeUpdateEngine
 import com.yugahashimoto.andcode.runtime.local.GitCloneRepository
 import com.yugahashimoto.andcode.runtime.local.GitCredentialHelper
+import com.yugahashimoto.andcode.runtime.local.Ipv4FirstDns
 import com.yugahashimoto.andcode.runtime.local.LocalProviderCredentialStore
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeAccessCoordinator
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeCommandRunner
@@ -57,6 +58,7 @@ import com.yugahashimoto.andcode.runtime.local.LocalRuntimeReleaseClient
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeServiceController
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeTarget
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeUpdater
+import com.yugahashimoto.andcode.runtime.local.PiController
 import com.yugahashimoto.andcode.runtime.local.VerifiedRuntimeDownloader
 import com.yugahashimoto.andcode.startup.CatalogReconcileInitializer
 import com.yugahashimoto.andcode.startup.RuntimeAutoStartInitializer
@@ -69,6 +71,7 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class AndCodeApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -139,6 +142,9 @@ class AndCodeApplication : Application() {
     lateinit var antigravityController: AntigravityController
         private set
 
+    lateinit var piController: PiController
+        private set
+
     lateinit var runtimeMessages: LocalRuntimeMessages
         private set
 
@@ -175,7 +181,13 @@ class AndCodeApplication : Application() {
         DeviceStorage.install { deviceStorageAccess.mounts() }
         notifications = RuntimeNotificationHelper(this)
         providerCredentials = LocalProviderCredentialStore(settings)
-        val httpClient = OkHttpClient()
+        val httpClient =
+            OkHttpClient.Builder()
+                .dns(Ipv4FirstDns())
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build()
         // Application-scoped so that navigating away from voice settings does not abandon a model
         // download half-written.
         voskModels = VoskModelStore(this, applicationScope, httpClient)
@@ -234,6 +246,7 @@ class AndCodeApplication : Application() {
         antigravityRuntime = AntigravityRuntime(runtimeDirectory, installer::installedRuntime, githubToken = { settings.githubToken })
         antigravityTarget = AntigravityTarget(antigravityRuntime)
         antigravityController = AntigravityController(installer, antigravityTarget, applicationScope)
+        piController = PiController(installer, applicationScope)
         runtimeMessages = AndroidLocalRuntimeMessages(this)
         gitCloneRepository =
             GitCloneRepository(

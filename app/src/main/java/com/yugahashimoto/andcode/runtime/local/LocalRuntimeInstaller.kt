@@ -61,6 +61,7 @@ class LocalRuntimeInstaller(
             val onShared: (Float?, String) -> Unit = { progress, step -> onProgress(progress, step, null) }
             val onClaude: (Float?, String) -> Unit = { progress, step -> onProgress(progress, step, LocalAgent.CLAUDE_CODE) }
             val onAntigravity: (Float?, String) -> Unit = { progress, step -> onProgress(progress, step, LocalAgent.ANTIGRAVITY) }
+            val onPi: (Float?, String) -> Unit = { progress, step -> onProgress(progress, step, LocalAgent.PI) }
             runtimeDirectory.mkdirs()
             onShared(0.02f, context.getString(R.string.install_step_preparing_command_env))
             val requestedAgents =
@@ -160,6 +161,12 @@ class LocalRuntimeInstaller(
                         onAntigravity(0.94f + progress * 0.04f, context.getString(R.string.install_step_installing_antigravity))
                     }
                 }
+                if (LocalAgent.PI in requestedAgents) {
+                    onPi(0.94f, context.getString(R.string.install_step_downloading_pi))
+                    PiInstaller(runtimeDirectory, abi, downloader).installInto(rootfs) { progress ->
+                        onPi(0.94f + progress * 0.04f, context.getString(R.string.install_step_installing_pi))
+                    }
+                }
 
                 val metadata =
                     LocalRuntimeMetadata(
@@ -238,6 +245,7 @@ class LocalRuntimeInstaller(
             )
         }?.also { installed ->
             ensureAndCodeAgentContext(installed.rootfs, context)
+            PiInstaller.ensureLauncher(installed.rootfs)
             installed.antigravityRootfs?.let { ensureAndCodeAgentContext(it, context) }
         }
 
@@ -417,6 +425,13 @@ class LocalRuntimeInstaller(
             writeText("nameserver 1.1.1.1\nnameserver 8.8.8.8\n")
         }
         File(rootfs, "etc/hosts").writeText("127.0.0.1 localhost\n::1 localhost\n")
+        File(rootfs, "etc/apk/repositories").apply {
+            parentFile?.mkdirs()
+            writeText(
+                "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.24/main\n" +
+                    "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.24/community\n",
+            )
+        }
         File(rootfs, "etc/profile.d/android-code.sh").apply {
             parentFile?.mkdirs()
             writeText(

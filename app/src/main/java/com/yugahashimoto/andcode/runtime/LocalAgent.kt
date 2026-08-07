@@ -5,9 +5,9 @@ import com.yugahashimoto.andcode.R
 /**
  * A coding agent that can be installed into the shared Android-local Linux sandbox.
  *
- * Both agents run inside the same Alpine/PRoot rootfs; they differ in how they are provisioned
- * (OpenCode ships as a downloaded binary, Claude Code as an apk package) and in how the app talks
- * to them (a local HTTP server versus a streaming JSON process).
+ * Agents share the same Android-local Linux sandbox, but each is provisioned by its own official
+ * distribution channel: OpenCode and Pi as verified release archives, Claude Code through apk, and
+ * Antigravity in its glibc Debian guest rootfs.
  */
 enum class LocalAgent(
     val id: String,
@@ -19,6 +19,7 @@ enum class LocalAgent(
     OPEN_CODE("opencode", R.string.agent_opencode_name, "local-android", R.drawable.ic_agent_opencode),
     CLAUDE_CODE("claude-code", R.string.agent_claude_code_name, "claude-code-local", R.drawable.ic_agent_claude),
     ANTIGRAVITY("antigravity", R.string.agent_antigravity_name, "antigravity-local", R.drawable.ic_agent_antigravity),
+    PI("pi", R.string.agent_pi_name, "pi-local", R.drawable.ic_agent_pi),
     ;
 
     companion object {

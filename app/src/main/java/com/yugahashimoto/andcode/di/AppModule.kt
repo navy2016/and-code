@@ -18,6 +18,7 @@ import com.yugahashimoto.andcode.runtime.local.AntigravityRuntime
 import com.yugahashimoto.andcode.runtime.local.AntigravityTarget
 import com.yugahashimoto.andcode.runtime.local.DefaultLocalRuntimeUpdateEngine
 import com.yugahashimoto.andcode.runtime.local.GitCredentialHelper
+import com.yugahashimoto.andcode.runtime.local.Ipv4FirstDns
 import com.yugahashimoto.andcode.runtime.local.LocalProviderCredentialStore
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeAccessCoordinator
 import com.yugahashimoto.andcode.runtime.local.LocalRuntimeCommandRunner
@@ -37,6 +38,7 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 val appModule =
     module {
@@ -61,7 +63,14 @@ val appModule =
 
         single { VoskModelStore(androidContext(), get(), get()) }
 
-        single { OkHttpClient() }
+        single {
+            OkHttpClient.Builder()
+                .dns(Ipv4FirstDns())
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build()
+        }
 
         single { LocalRuntimeAccessCoordinator() }
 
