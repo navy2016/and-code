@@ -25,14 +25,14 @@ jobs:
       - run: yes | sdkmanager --licenses >/dev/null || true
       - run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       # See release.yml for why this is AND_CODE_-prefixed rather than GITHUB_CLIENT_ID directly.
-      - run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
+      - run: ./gradlew :app:testDebugUnitTest :app:assembleRelease
         env:
           GITHUB_CLIENT_ID: ${{ vars.AND_CODE_GITHUB_CLIENT_ID }}
       - id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: and-code-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: and-code-release-apk
+          path: app/build/outputs/apk/debug/app-release.apk
           if-no-files-found: error
           retention-days: 14
       - name: Comment or update APK link on PR
@@ -54,10 +54,10 @@ jobs:
               core.info('No associated pull request found; skipping comment.');
               return;
             }
-            const marker = '<!-- and-code-debug-apk -->';
+            const marker = '<!-- and-code-release-apk -->';
             const body = [
               marker,
-              '**Debug APK built successfully**',
+              '**Release APK built successfully**',
               '',
               `[Download APK artifact](${artifactUrl})`,
               `[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${context.runId})`,
