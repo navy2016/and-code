@@ -1,8 +1,8 @@
 package com.yugahashimoto.andcode.runtime.local
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class PiManifestTest {
     @Test
@@ -15,12 +15,18 @@ class PiManifestTest {
 
     @Test
     fun `rejects unsupported ABI`() {
-        assertFailsWith<IllegalStateException> { PiManifest.assetFor("armeabi-v7a") }
+        assertThrows(IllegalStateException::class.java) { PiManifest.assetFor("armeabi-v7a") }
     }
 
     @Test
     fun `pins official release checksums`() {
-        assertEquals("67e331ab3e191e45a2197c1127a7b44e98fe04d93d4654d7cba769019cf1b694", PiManifest.arm64.sha256)
-        assertEquals("061e4fd191aaf5733b709aec30fce0693b7575a913e942990c0de9f31fc5c4db", PiManifest.x64.sha256)
+        assertEquals(
+            "67e331ab3e191e45a2197c1127a7b44e98fe04d93d4654d7cba769019cf1b694",
+            PiManifest.arm64.sha256,
+        )
+        assertEquals(
+            "061e4fd191aaf5733b709aec30fce0693b7575a913e942990c0de9f31fc5c4db",
+            PiManifest.x64.sha256,
+        )
     }
 }

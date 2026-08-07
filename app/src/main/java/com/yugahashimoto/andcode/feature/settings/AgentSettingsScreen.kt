@@ -103,7 +103,14 @@ fun PiAgentSettingsScreen(
     AgentSettingsScaffold(title = stringResource(LocalAgent.PI.displayNameRes), onBack = onBack) {
         AgentCardSection {
             AgentStatusCard(
-                status = if (pi.installed) stringResource(R.string.pi_status_installed) else stringResource(R.string.runtime_status_not_installed),
+                status =
+                    if (pi.installed) {
+                        stringResource(
+                            R.string.pi_status_installed,
+                        )
+                    } else {
+                        stringResource(R.string.runtime_status_not_installed)
+                    },
                 active = pi.isReady(),
                 metrics = pi.version?.let { listOf(AgentMetric(stringResource(R.string.agent_version_label), it)) }.orEmpty(),
             ) {
@@ -121,8 +128,16 @@ fun PiAgentSettingsScreen(
                         }
                     }
                     is PiInstallStatus.Failed -> Text(install.message, color = MaterialTheme.colorScheme.error)
-                    is PiInstallStatus.Ready -> Text(stringResource(R.string.pi_installed_version, install.version), style = MaterialTheme.typography.bodySmall)
-                    PiInstallStatus.Idle -> Text(stringResource(R.string.pi_setup_no_sign_in_required), style = MaterialTheme.typography.bodySmall)
+                    is PiInstallStatus.Ready ->
+                        Text(
+                            stringResource(R.string.pi_installed_version, install.version),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    PiInstallStatus.Idle ->
+                        Text(
+                            stringResource(R.string.pi_setup_no_sign_in_required),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                 }
                 Spacer(Modifier.height(12.dp))
                 if (!pi.installed || pi.install is PiInstallStatus.Failed) {

@@ -39,7 +39,10 @@ object PiManifest {
             else -> error("Pi official Linux release does not support ABI $abi")
         }
 
-    fun verifyArchive(file: File, abi: String) {
+    fun verifyArchive(
+        file: File,
+        abi: String,
+    ) {
         RuntimeArchive.verifySha256(file, assetFor(abi).sha256)
     }
 }

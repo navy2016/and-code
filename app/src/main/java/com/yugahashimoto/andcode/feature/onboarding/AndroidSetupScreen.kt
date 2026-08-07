@@ -640,14 +640,16 @@ private fun SharedInstallProgress(status: LocalRuntimeStatus.Installing) {
     }
 }
 
-
 @Composable
 private fun PiInstallProgress(pi: PiControllerState) {
     when (val install = pi.install) {
         is PiInstallStatus.Installing -> {
             Text(stringResource(install.step), fontWeight = FontWeight.Medium)
             if (install.progress != null) {
-                LinearProgressIndicator(progress = { install.progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(
+                    progress = { install.progress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             } else {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }

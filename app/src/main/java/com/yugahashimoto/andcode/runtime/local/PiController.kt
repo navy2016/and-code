@@ -76,7 +76,9 @@ class PiController(
     private suspend fun refreshBlocking() =
         withContext(Dispatchers.IO) {
             val rootfs = installer.installedRuntime()?.rootfs
-            val version = rootfs?.let { PiInstaller.installedVersion(it) } ?: rootfs?.takeIf(PiInstaller::isInstalled)?.let { PiManifest.VERSION }
+            val version =
+                rootfs?.let { PiInstaller.installedVersion(it) }
+                    ?: rootfs?.takeIf(PiInstaller::isInstalled)?.let { PiManifest.VERSION }
             mutableState.value =
                 mutableState.value.copy(
                     installed = version != null,
